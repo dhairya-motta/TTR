@@ -269,14 +269,24 @@ SEXP runmad(SEXP _x, SEXP _center, SEXP _n, SEXP _type,
   double *result = REAL(_result);
 
   /* check for non-leading NAs and get first non-NA location */
-  SEXP _first = PROTECT(xts_na_check(_x, ScalarLogical(TRUE))); P++;
-  int first = INTEGER(_first)[0];
-  if (n + first > nr) {
+  SEXP _first_x = PROTECT(xts_na_check(_x, ScalarLogical(TRUE))); P++;
+  int first_x = INTEGER(_first_x)[0];
+  if (n + first_x > nr) {
     error("not enough non-NA values in 'x'");
   }
 
+  SEXP _first_center = PROTECT(xts_na_check(_center, ScalarLogical(TRUE))); P++;
+  int first_center = INTEGER(_first_center)[0];
+  /* runMAD does not necessarily need n + first_center > nr because center doesn't need a lookback window itself here, 
+     but there must be enough values to calculate the deviation */
+  if (first_center >= nr) {
+    error("not enough non-NA values in 'center'");
+  }
+
+  int first = (first_x > first_center) ? first_x : first_center;
+
   /* Set leading NAs in output */
-  for (i = 0; i < first + n; i++) {
+  for (i = 0; i < first + n - 1; i++) {
     result[i] = NA_REAL;
   }
 
