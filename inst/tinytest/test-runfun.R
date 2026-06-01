@@ -261,8 +261,8 @@ expect_equal(ymed, c(na, xmed))
 x_test <- c(1:10)
 center_test <- c(NA, NA, 3:10)
 expect_silent( res <- runMAD(x_test, n = 3, center = center_test) )
-expect_true( all(is.na(res[1:4])) )
-expect_true( !any(is.na(res[5:10])) )
+expect_true( all(is.na(res[1:2])) )
+expect_true( !any(is.na(res[3:10])) )
 
 # Percent Rank
 x <- input$all$Close

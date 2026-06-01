@@ -283,10 +283,11 @@ SEXP runmad(SEXP _x, SEXP _center, SEXP _n, SEXP _type,
     error("not enough non-NA values in 'center'");
   }
 
-  int first = (first_x > first_center) ? first_x : first_center;
+  int first_i_x = first_x + n - 1;
+  int first_i = (first_i_x > first_center) ? first_i_x : first_center;
 
   /* Set leading NAs in output */
-  for (i = 0; i < first + n - 1; i++) {
+  for (i = 0; i < first_i; i++) {
     result[i] = NA_REAL;
   }
 
@@ -303,7 +304,6 @@ SEXP runmad(SEXP _x, SEXP _center, SEXP _n, SEXP _type,
 
   SEXP _window;
   double *window;
-  int first_i = first + n - 1;
 
   if (cumulative) {
     _window = PROTECT(duplicate(_x)); P++;
@@ -311,7 +311,7 @@ SEXP runmad(SEXP _x, SEXP _center, SEXP _n, SEXP _type,
 
     if (type) {
       for (i = first_i; i < nr; i++) {
-        int N = i-first+1;
+        int N = i-first_x+1;
         for (j = 0; j < N; j++) {
           window[j] = fabs(x[i-j] - center[i]);
         }
