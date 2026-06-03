@@ -258,11 +258,25 @@ ymed <- runMAD(y, 1, cumulative = TRUE)
 expect_equal(ymed, c(na, xmed))
 
 # runMAD with leading NA in center (Issue #25)
-x_test <- c(1:10)
-center_test <- c(NA, NA, 3:10)
-expect_silent( res <- runMAD(x_test, n = 3, center = center_test) )
-expect_true( all(is.na(res[1:2])) )
-expect_true( !any(is.na(res[3:10])) )
+# When center has more leading NAs than x, the C loop must not start until
+# both x AND center have valid data.
+#
+# DEMA(x, n=5) produces 8 leading NAs (2*n - 2 for the double smoothing).
+# With n=3 for runMAD, the old code only checked NAs in x (none), so it
+# started computing at index 3 and silently read center's NA values as
+# raw 0.0, producing wrong non-NA results for indices 3-8.
+# The fix makes the loop start at max(first_x + n - 1, first_center) = 9.
+x_dema <- as.numeric(input$all$Close[1:20])
+center_dema <- DEMA(x_dema, n = 5)
+dema_first_valid <- min(which(!is.na(center_dema)))  # should be 9
+
+res_dema <- runMAD(x_dema, n = 3, center = center_dema)
+# all indices before first valid center must be NA
+expect_true(all(is.na(res_dema[seq_len(dema_first_valid - 1)])),
+            info = "runMAD: NAs before center is valid (Issue #25)")
+# first valid result is at the DEMA's first non-NA position
+expect_true(!is.na(res_dema[dema_first_valid]),
+            info = "runMAD: first valid result aligns with center (Issue #25)")
 
 # Percent Rank
 x <- input$all$Close
