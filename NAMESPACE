@@ -80,3 +80,4 @@ importFrom(utils,read.csv)
 importFrom(utils,read.table)
 
 useDynLib(TTR, .registration = TRUE, .fixes = "C_")
+export(RWI)
